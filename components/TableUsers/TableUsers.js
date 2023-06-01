@@ -3,6 +3,8 @@ import { fetchAllUsers } from '../../services/Users';
 import { Table, Button } from 'antd';
 import ModalAddUser from '../Modal/modal';
 import EditModal from '../EditModal/EditModal';
+import DeleteModal from '../DeleteModal/DeleteModal';
+import _ from 'lodash';
 
 const TableUsers = (props) => {
   const columns = [
@@ -19,7 +21,7 @@ const TableUsers = (props) => {
     {
       title: 'First Name',
       dataIndex: 'FirstName',
-      key: 'FirstName',
+      key: 'first_name',
     },
     {
       title: 'Last Name',
@@ -33,15 +35,12 @@ const TableUsers = (props) => {
       render: (text, record) => (
         <>
           <>
-            <EditModal record={record} />
+            <EditModal record={record} handleEditUsers={handleEditUsers} />
+            <DeleteModal
+              record={record}
+              handleDeleteUsers={handleDeleteUsers}
+            />
           </>
-
-          <button
-            className="rounded-full bg-red-500 px-4"
-            onClick={() => console.log(record)}
-          >
-            {'Delete'}
-          </button>
         </>
       ),
     },
@@ -54,8 +53,22 @@ const TableUsers = (props) => {
     setListUsers([user, ...listUsers]);
   };
 
+  const handleEditUsers = (user) => {
+    let cloneListUsers = _.cloneDeep(listUsers);
+    let index = listUsers.findIndex((item) => item.ID === user.ID);
+    cloneListUsers[index].FirstName = user.first_name;
+    setListUsers(cloneListUsers);
+  };
+
+  const handleDeleteUsers = (user) => {
+    let cloneListUsers = _.cloneDeep(listUsers);
+    cloneListUsers = cloneListUsers.filter((item) => item.ID !== user.ID);
+    setListUsers(cloneListUsers);
+  };
+
   useEffect(() => {
     getUsers(1);
+    handleDeleteUsers();
   }, []);
 
   const getUsers = async (page) => {
@@ -64,6 +77,7 @@ const TableUsers = (props) => {
       setTotalUsers(res.total);
       setListUsers(
         res.data.map((row) => ({
+          key: row.id,
           ID: row.id,
           Email: row.email,
           FirstName: row.first_name,

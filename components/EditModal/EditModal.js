@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Button, Modal, Form, Checkbox, Input } from 'antd';
+import { updateUsers } from '@/services/Users';
+import { toast } from 'react-toastify';
 
 const EditModal = (props) => {
-  const { record } = props;
+  const { record, handleEditUsers } = props;
   const [dataEditUser, setDataEditUser] = useState({});
   const [name, setName] = useState('');
   const [job, setJob] = useState('');
@@ -12,8 +14,16 @@ const EditModal = (props) => {
     setIsModalOpen(true);
     setDataEditUser({ ...record });
   };
-  const handleOk = async () => {
+  const handleOk = async (page) => {
     setIsModalOpen(false);
+    let res = await updateUsers(name, job, page);
+    if (res && res.updatedAt) {
+      handleEditUsers({
+        first_name: name,
+        ID: dataEditUser.ID,
+      });
+      toast.success('Users updated successfully');
+    }
   };
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -32,16 +42,12 @@ const EditModal = (props) => {
         title="Edit a user"
         open={isModalOpen}
         onOk={handleOk}
+        okText="Save changes"
         onCancel={handleCancel}
       >
         <Form
           name="basic"
-          labelCol={{
-            span: 8,
-          }}
-          wrapperCol={{
-            span: 16,
-          }}
+          onFinish={handleOk}
           initialValues={{
             remember: true,
             FirstName: dataEditUser.FirstName,
@@ -50,7 +56,7 @@ const EditModal = (props) => {
         >
           <Form.Item
             label="Name"
-            name="name"
+            name="FirstName"
             rules={[
               {
                 required: true,
@@ -58,7 +64,10 @@ const EditModal = (props) => {
               },
             ]}
           >
-            <Input value={dataEditUser.FirstName} />
+            <Input
+              value={dataEditUser.FirstName}
+              onChange={(e) => setName(e.target.value)}
+            />
           </Form.Item>
 
           <Form.Item
